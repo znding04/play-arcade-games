@@ -44,6 +44,45 @@ window.initGame = function (container) {
   btnRow.appendChild(jokerBtn);
 
   wrap.appendChild(btnRow);
+
+  // Rules "?" button (top-right corner)
+  wrap.style.position = 'relative';
+  var rulesBtn = document.createElement('button');
+  rulesBtn.textContent = '?';
+  rulesBtn.style.cssText = 'position:absolute;top:0;right:0;width:30px;height:30px;border-radius:50%;background:#8b5cf6;color:#fff;border:none;cursor:pointer;font-weight:bold;font-size:16px;z-index:10;';
+  rulesBtn.onclick = function() {
+    var modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:1000;';
+    var content = document.createElement('div');
+    content.style.cssText = 'background:#1a1a1a;color:#fff;padding:20px;border-radius:10px;max-width:500px;max-height:80vh;overflow-y:auto;';
+    content.innerHTML = '<h2 style="margin-top:0;color:#8b5cf6;">Lock-n-Roll Rules</h2>'
+      + '<h3>Prime Combos (Clear):</h3>'
+      + '<ul style="font-size:14px;line-height:1.6;">'
+      + '<li>Same color + same number = 100 pts</li>'
+      + '<li>Same color + diff numbers (1-4) = 80 pts</li>'
+      + '<li>Diff colors + same number = 70 pts</li>'
+      + '<li>Diff colors + diff numbers (1-4) = 60 pts</li>'
+      + '</ul>'
+      + '<h3>Scoring Only (No Clear):</h3>'
+      + '<ul style="font-size:14px;line-height:1.6;">'
+      + '<li>4 same number = 30 pts</li>'
+      + '<li>4 same color = 30 pts</li>'
+      + '<li>3 same number/color = 15 pts</li>'
+      + '<li>Pairs = 5-10 pts</li>'
+      + '</ul>'
+      + '<h3>Joker:</h3>'
+      + '<p style="font-size:14px;">Earned at 250 pts, max 3. Each joker reduces combo value by 25%.</p>';
+    var closeBtn = document.createElement('button');
+    closeBtn.textContent = 'Close';
+    closeBtn.style.cssText = 'background:#8b5cf6;color:#fff;border:none;padding:10px 20px;border-radius:5px;cursor:pointer;margin-top:10px;font-size:14px;';
+    closeBtn.onclick = function() { modal.remove(); };
+    content.appendChild(closeBtn);
+    modal.appendChild(content);
+    modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
+    document.body.appendChild(modal);
+  };
+  wrap.appendChild(rulesBtn);
+
   container.appendChild(wrap);
 
   var ctx = canvas.getContext('2d');
@@ -336,7 +375,7 @@ window.initGame = function (container) {
     for (var i = 0; i < 16; i++) {
       if (state.grid[i] === null) empty++;
     }
-    return empty < 4;
+    return empty === 0;
   }
 
   function resetGame() {
