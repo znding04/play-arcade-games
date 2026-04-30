@@ -1,5 +1,46 @@
-# Vue 3 + Vite
+# 玩点啥 (What to Play)
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+🎮 A game arcade collection built with Vue 3 + Vite + Tailwind CSS.
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+## Features
+
+- 🏓 **Pong** - Classic two-player ping pong
+- 🐍 **Snake** - Guide the snake to eat and grow
+- 🔢 **2048** - Merge tiles to reach 2048
+- 🧱 **Tetris** - Stack blocks to clear lines
+
+## Tech Stack
+
+- Vue 3 (Composition API)
+- Vite (lightning fast builds)
+- Vue Router (page navigation)
+- Tailwind CSS (styling)
+- Vanilla JS games (ported from [znding04.github.io](https://znding04.github.io))
+
+## Project Setup
+
+```bash
+# Install dependencies
+npm install
+
+# Start dev server
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+```
+
+## Game Credits
+
+Games originally from [znding04.github.io](https://znding04.github.io) homepage, ported to this Vue arcade app.
+
+## License
+
+MIT
+
+---
+
+Built with 💜 by [Zane](https://github.com/znding04)
