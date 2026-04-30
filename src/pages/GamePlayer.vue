@@ -48,7 +48,15 @@ const games = {
   pong: { titleZh: '乒乓球', titleEn: 'Pong', icon: '🏓', script: '/games/pong.js' },
   snake: { titleZh: '贪吃蛇', titleEn: 'Snake', icon: '🐍', script: '/games/snake.js' },
   '2048': { titleZh: '2048', titleEn: '2048', icon: '🔢', script: '/games/2048.js' },
-  tetris: { titleZh: '俄罗斯方块', titleEn: 'Tetris', icon: '🧱', script: '/games/tetris.js' }
+  tetris: { titleZh: '俄罗斯方块', titleEn: 'Tetris', icon: '🧱', script: '/games/tetris.js' },
+  breakout: { titleZh: '打砖块', titleEn: 'Breakout', icon: '🧱', script: '/games/breakout.js' },
+  flappy: { titleZh: '飞扬的小鸟', titleEn: 'Flappy Bird', icon: '🐦', script: '/games/flappy.js' },
+  'space-invaders': { titleZh: '太空侵略者', titleEn: 'Space Invaders', icon: '👾', script: '/games/space-invaders.js' },
+  pacman: { titleZh: '吃豆人', titleEn: 'Pac-Man', icon: '👻', script: '/games/pacman.js' },
+  memory: { titleZh: '记忆翻牌', titleEn: 'Memory', icon: '🃏', script: '/games/memory.js' },
+  minesweeper: { titleZh: '扫雷', titleEn: 'Minesweeper', icon: '💣', script: '/games/minesweeper.js' },
+  tictactoe: { titleZh: '井字棋', titleEn: 'Tic-Tac-Toe', icon: '❌', script: '/games/tictactoe.js' },
+  crossy: { titleZh: '过马路', titleEn: 'Crossy Road', icon: '🐔', script: '/games/crossy.js' }
 }
 
 const currentGame = computed(() => {

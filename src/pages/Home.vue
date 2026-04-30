@@ -77,6 +77,62 @@ const games = ref([
     icon: '🧱',
     titleZh: '俄罗斯方块',
     titleEn: 'Tetris'
+  },
+  {
+    name: 'breakout',
+    route: 'breakout',
+    icon: '🧱',
+    titleZh: '打砖块',
+    titleEn: 'Breakout'
+  },
+  {
+    name: 'flappy',
+    route: 'flappy',
+    icon: '🐦',
+    titleZh: '飞扬的小鸟',
+    titleEn: 'Flappy Bird'
+  },
+  {
+    name: 'space-invaders',
+    route: 'space-invaders',
+    icon: '👾',
+    titleZh: '太空侵略者',
+    titleEn: 'Space Invaders'
+  },
+  {
+    name: 'pacman',
+    route: 'pacman',
+    icon: '👻',
+    titleZh: '吃豆人',
+    titleEn: 'Pac-Man'
+  },
+  {
+    name: 'memory',
+    route: 'memory',
+    icon: '🃏',
+    titleZh: '记忆翻牌',
+    titleEn: 'Memory'
+  },
+  {
+    name: 'minesweeper',
+    route: 'minesweeper',
+    icon: '💣',
+    titleZh: '扫雷',
+    titleEn: 'Minesweeper'
+  },
+  {
+    name: 'tictactoe',
+    route: 'tictactoe',
+    icon: '❌',
+    titleZh: '井字棋',
+    titleEn: 'Tic-Tac-Toe'
+  },
+  {
+    name: 'crossy',
+    route: 'crossy',
+    icon: '🐔',
+    titleZh: '过马路',
+    titleEn: 'Crossy Road'
   }
 ])
 </script>
