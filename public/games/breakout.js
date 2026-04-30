@@ -127,11 +127,9 @@ window.initGame = function (container) {
     if (ballX - BALL_R <= 0 || ballX + BALL_R >= W) ballDX = -ballDX;
     if (ballY - BALL_R <= 0) ballDY = -ballDY;
 
-    // Paddle bounce
+    // Paddle bounce: pure reflection — flip dy, keep dx unchanged.
     if (ballY + BALL_R >= H - 30 && ballY + BALL_R <= H - 18 && ballX >= paddleX && ballX <= paddleX + PADDLE_W) {
       ballDY = -Math.abs(ballDY);
-      var hit = (ballX - paddleX) / PADDLE_W - 0.5;
-      ballDX = hit * 6;
     }
 
     // Bottom

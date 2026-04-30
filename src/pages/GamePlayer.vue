@@ -2,16 +2,16 @@
   <div class="min-h-screen bg-stone-900 text-white">
     <!-- Header Bar -->
     <div class="bg-stone-800/80 backdrop-blur border-b border-stone-700 px-4 py-3 flex items-center justify-between">
-      <button 
+      <button
         @click="$router.push('/')"
         class="flex items-center gap-2 text-stone-400 hover:text-white transition-colors"
       >
         <span class="text-xl">←</span>
         <span>Back to Arcade</span>
       </button>
-      
+
       <h1 class="text-xl font-bold">{{ currentGame?.titleZh || 'Game' }}</h1>
-      
+
       <div class="text-right">
         <div class="text-sm text-stone-400">{{ currentGame?.titleEn || '' }}</div>
       </div>
@@ -22,7 +22,7 @@
       <div class="game-wrapper relative">
         <!-- Game Canvas/Container will be injected here -->
         <div ref="gameContainer" class="bg-stone-800 rounded-xl overflow-hidden shadow-2xl"></div>
-        
+
         <!-- Loading State -->
         <div v-if="loading" class="absolute inset-0 flex items-center justify-center bg-stone-800/90 rounded-xl">
           <div class="text-center">
@@ -36,7 +36,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, nextTick } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
 const router = useRouter()
@@ -69,25 +69,39 @@ onMounted(() => {
     router.push('/')
     return
   }
-  
   loadGame()
 })
 
+onBeforeUnmount(() => {
+  cleanupPreviousGame()
+})
+
+function cleanupPreviousGame() {
+  // Run any cleanup the previous game registered (cancel rAF, remove listeners, etc.)
+  if (typeof window.__gameCleanup === 'function') {
+    try { window.__gameCleanup() } catch (e) { console.error('game cleanup failed', e) }
+  }
+  window.__gameCleanup = null
+  window.initGame = null
+
+  // Remove any previously-injected game scripts so the next one re-evaluates cleanly.
+  document.querySelectorAll('script[data-arcade-game]').forEach(s => s.remove())
+}
+
 async function loadGame() {
   loading.value = true
-  
+  cleanupPreviousGame()
+
   try {
-    // Dynamically load the game script
     await loadScript(currentGame.value.script)
-    
-    // Wait a bit for script to initialize
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    // Initialize the game if there's an init function
+    await new Promise(resolve => setTimeout(resolve, 50))
+
     if (typeof window.initGame === 'function') {
       window.initGame(gameContainer.value)
+    } else {
+      console.error('Game script did not register window.initGame:', currentGame.value.script)
     }
-    
+
     loading.value = false
   } catch (err) {
     console.error('Failed to load game:', err)
@@ -97,15 +111,9 @@ async function loadGame() {
 
 function loadScript(src) {
   return new Promise((resolve, reject) => {
-    // Check if script already loaded
-    const existing = document.querySelector(`script[src="${src}"]`)
-    if (existing) {
-      resolve()
-      return
-    }
-    
     const script = document.createElement('script')
     script.src = src
+    script.dataset.arcadeGame = '1'
     script.onload = () => resolve()
     script.onerror = () => reject(new Error(`Failed to load script: ${src}`))
     document.body.appendChild(script)
