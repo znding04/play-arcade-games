@@ -219,7 +219,7 @@ window.initGame = function (container) {
         }
       }
 
-      // Pairs (check subsets of 2) — only if no bigger combo found on this line
+      // Pairs (check subsets of 2) — score points but do NOT clear from board
       var lineHasCombo = combos.some(function(co) {
         return co.indices.some(function(ci) { return indices.indexOf(ci) >= 0; });
       });
@@ -232,7 +232,7 @@ window.initGame = function (container) {
           var pJC = sp.cells.length - pNJ.length;
           var pNums = pNJ.map(function(c) { return c.number; });
           if (checkNOfAKind(pNums, 2, pJC)) {
-            combos.push({ indices: sp.indices.slice(), points: 10, type: 'Pair' });
+            combos.push({ indices: sp.indices.slice(), points: 10, type: 'Pair', clear: false });
             foundPair = true; break;
           }
         }
@@ -243,7 +243,7 @@ window.initGame = function (container) {
             var pJC2 = sp2.cells.length - pNJ2.length;
             var pColors = pNJ2.map(function(c) { return c.color; });
             if (checkSameColor(pColors, 2, pJC2)) {
-              combos.push({ indices: sp2.indices.slice(), points: 15, type: 'Color Pair' });
+              combos.push({ indices: sp2.indices.slice(), points: 15, type: 'Color Pair', clear: false });
               break;
             }
           }
@@ -389,7 +389,10 @@ window.initGame = function (container) {
     var totalPoints = 0;
     combos.forEach(function(combo) {
       totalPoints += combo.points;
-      combo.indices.forEach(function(idx) { state.grid[idx] = null; });
+      // Only clear cells for difficult combinations (3+ dice); pairs stay on board
+      if (combo.clear !== false) {
+        combo.indices.forEach(function(idx) { state.grid[idx] = null; });
+      }
     });
 
     var prevScore = state.score;
