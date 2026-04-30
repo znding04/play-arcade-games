@@ -56,7 +56,8 @@ const games = {
   memory: { titleZh: '记忆翻牌', titleEn: 'Memory', icon: '🃏', script: '/games/memory.js' },
   minesweeper: { titleZh: '扫雷', titleEn: 'Minesweeper', icon: '💣', script: '/games/minesweeper.js' },
   tictactoe: { titleZh: '井字棋', titleEn: 'Tic-Tac-Toe', icon: '❌', script: '/games/tictactoe.js' },
-  crossy: { titleZh: '过马路', titleEn: 'Crossy Road', icon: '🐔', script: '/games/crossy.js' }
+  crossy: { titleZh: '过马路', titleEn: 'Crossy Road', icon: '🐔', script: '/games/crossy.js' },
+  'lock-n-roll': { titleZh: '骰子消消乐', titleEn: 'Lock-n-Roll', icon: '🎲', script: '/games/lock-n-roll.js' }
 }
 
 const currentGame = computed(() => {
