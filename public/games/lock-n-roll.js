@@ -2,6 +2,11 @@
    LOCK-N-ROLL DICE PUZZLE GAME
    Roll 4 dice, place on a 4x4 grid, score combinations.
    Uses canvas for rendering. Touch-friendly.
+
+   Rules based on the original jayisgames Lock-n-Roll:
+   - 15 scoring groups (rows, columns, diagonals, quads, corners)
+   - 4 clearing combos (color+number patterns)
+   - Jokers earned at 250-point thresholds, 25% penalty per joker
    ============================================================ */
 window.initGame = function (container) {
   container.innerHTML = '';
@@ -46,6 +51,23 @@ window.initGame = function (container) {
   var bestEl = document.getElementById('lnr-best');
   var jokersEl = document.getElementById('lnr-jokers');
 
+  // 15 scoring groups: rows(4) + columns(4) + diagonals(2) + 2x2 quads(4) + corners(1)
+  var GROUPS = [];
+  // Rows
+  for (var r = 0; r < 4; r++) GROUPS.push([r*4, r*4+1, r*4+2, r*4+3]);
+  // Columns
+  for (var c = 0; c < 4; c++) GROUPS.push([c, c+4, c+8, c+12]);
+  // Diagonals
+  GROUPS.push([0, 5, 10, 15]);
+  GROUPS.push([3, 6, 9, 12]);
+  // 2x2 Quadrants
+  GROUPS.push([0, 1, 4, 5]);
+  GROUPS.push([2, 3, 6, 7]);
+  GROUPS.push([8, 9, 12, 13]);
+  GROUPS.push([10, 11, 14, 15]);
+  // Four corners
+  GROUPS.push([0, 3, 12, 15]);
+
   // State
   var state = {
     grid: new Array(16).fill(null),
@@ -53,7 +75,6 @@ window.initGame = function (container) {
     score: 0,
     bestScore: parseInt(localStorage.getItem('lnr-best') || '0'),
     jokers: 0,
-    jokersPending: 0,
     gameOver: false,
     phase: 'roll',
     selectedDie: -1,
@@ -119,7 +140,6 @@ window.initGame = function (container) {
     state.placingJoker = false;
     jokerBtn.style.opacity = state.jokers > 0 ? '1' : '0.5';
 
-    // If in place phase and all dice placed, check combos
     if (state.phase === 'place' && state.dice.every(function(d) { return d.placed; })) {
       checkAndClearCombinations();
       if (isGameOver()) {
@@ -137,247 +157,140 @@ window.initGame = function (container) {
     return true;
   }
 
-  // Combination detection: check rows and columns
-  function findCombinations() {
-    var combos = [];
-    var lines = [];
-    // Rows
-    for (var r = 0; r < 4; r++) {
-      lines.push([r*4, r*4+1, r*4+2, r*4+3]);
+  // Evaluate a group of 4 cells for the best combination
+  function evaluateGroup(indices) {
+    var cells = indices.map(function(i) { return state.grid[i]; });
+    // All 4 cells must be filled to score
+    if (cells.some(function(c) { return c === null; })) return null;
+
+    var jokerCount = cells.filter(function(c) { return c.joker; }).length;
+    var nonJoker = cells.filter(function(c) { return !c.joker; });
+    var numbers = nonJoker.map(function(c) { return c.number; });
+    var colors = nonJoker.map(function(c) { return c.color; });
+
+    // Determine number pattern
+    var numPattern = getNumberPattern(numbers, jokerCount);
+    // Determine color pattern
+    var colorPattern = getColorPattern(colors, jokerCount);
+
+    // Check the 4 clearing combinations first (color+number combos)
+    var clearing = checkClearingCombo(numPattern, colorPattern, numbers, colors, jokerCount);
+    if (clearing) {
+      var pts = Math.round(clearing.points * Math.pow(0.75, jokerCount));
+      return { indices: indices, points: pts, type: clearing.type, clear: true };
     }
-    // Columns
-    for (var c = 0; c < 4; c++) {
-      lines.push([c, c+4, c+8, c+12]);
-    }
 
-    lines.forEach(function(indices) {
-      var cells = indices.map(function(i) { return state.grid[i]; });
-      var filled = cells.filter(function(c) { return c !== null; });
-      if (filled.length < 2) return;
+    // Non-clearing: evaluate number and color patterns independently, take best of each
+    var numScore = scoreNumberPattern(numPattern, numbers, jokerCount);
+    var colScore = scoreColorPattern(colorPattern, colors, jokerCount);
+    var totalPoints = numScore.points + colScore.points;
 
-      // Get effective numbers (jokers adapt)
-      var nonJoker = filled.filter(function(c) { return !c.joker; });
+    if (totalPoints === 0) return null;
 
-      // --- Number combinations ---
-      // Four of a kind
-      if (filled.length === 4) {
-        var nums = nonJoker.map(function(c) { return c.number; });
-        var jokerCount = filled.length - nonJoker.length;
-        if (checkNOfAKind(nums, 4, jokerCount)) {
-          combos.push({ indices: indices.slice(), points: 60, type: '4 of a Kind' });
-          return;
-        }
-        // Straights
-        var straight = checkStraight(nums, jokerCount);
-        if (straight) {
-          combos.push({ indices: indices.slice(), points: straight.points, type: straight.name });
-          return;
-        }
-        // Full house
-        if (checkFullHouse(nums, jokerCount)) {
-          combos.push({ indices: indices.slice(), points: 50, type: 'Full House' });
-          return;
-        }
-        // Two pairs
-        if (checkTwoPairs(nums, jokerCount)) {
-          combos.push({ indices: indices.slice(), points: 25, type: 'Two Pairs' });
-          return;
-        }
-        // Same color quad
-        var colors = nonJoker.map(function(c) { return c.color; });
-        if (checkSameColor(colors, 4, jokerCount)) {
-          combos.push({ indices: indices.slice(), points: 90, type: 'Color Quad' });
-          return;
-        }
-      }
+    var pts2 = Math.round(totalPoints * Math.pow(0.75, jokerCount));
+    var typeParts = [];
+    if (numScore.type) typeParts.push(numScore.type);
+    if (colScore.type) typeParts.push(colScore.type);
 
-      // Three of a kind / triple color (check subsets of 3)
-      if (filled.length >= 3) {
-        var found3 = false;
-        var subsets3 = getSubsets(indices, 3, state.grid);
-        for (var s = 0; s < subsets3.length; s++) {
-          var sub = subsets3[s];
-          var sNJ = sub.cells.filter(function(c) { return !c.joker; });
-          var sJC = sub.cells.length - sNJ.length;
-          var sNums = sNJ.map(function(c) { return c.number; });
-          if (checkNOfAKind(sNums, 3, sJC)) {
-            combos.push({ indices: sub.indices.slice(), points: 30, type: '3 of a Kind' });
-            found3 = true; break;
-          }
-        }
-        if (!found3) {
-          for (var s2 = 0; s2 < subsets3.length; s2++) {
-            var sub2 = subsets3[s2];
-            var sNJ2 = sub2.cells.filter(function(c) { return !c.joker; });
-            var sJC2 = sub2.cells.length - sNJ2.length;
-            var sColors = sNJ2.map(function(c) { return c.color; });
-            if (checkSameColor(sColors, 3, sJC2)) {
-              combos.push({ indices: sub2.indices.slice(), points: 45, type: 'Color Triple' });
-              break;
-            }
-          }
-        }
-      }
-
-      // Pairs (check subsets of 2) — score points but do NOT clear from board
-      var lineHasCombo = combos.some(function(co) {
-        return co.indices.some(function(ci) { return indices.indexOf(ci) >= 0; });
-      });
-      if (!lineHasCombo && filled.length >= 2) {
-        var subsets2 = getSubsets(indices, 2, state.grid);
-        var foundPair = false;
-        for (var p = 0; p < subsets2.length; p++) {
-          var sp = subsets2[p];
-          var pNJ = sp.cells.filter(function(c) { return !c.joker; });
-          var pJC = sp.cells.length - pNJ.length;
-          var pNums = pNJ.map(function(c) { return c.number; });
-          if (checkNOfAKind(pNums, 2, pJC)) {
-            combos.push({ indices: sp.indices.slice(), points: 10, type: 'Pair', clear: false });
-            foundPair = true; break;
-          }
-        }
-        if (!foundPair) {
-          for (var p2 = 0; p2 < subsets2.length; p2++) {
-            var sp2 = subsets2[p2];
-            var pNJ2 = sp2.cells.filter(function(c) { return !c.joker; });
-            var pJC2 = sp2.cells.length - pNJ2.length;
-            var pColors = pNJ2.map(function(c) { return c.color; });
-            if (checkSameColor(pColors, 2, pJC2)) {
-              combos.push({ indices: sp2.indices.slice(), points: 15, type: 'Color Pair', clear: false });
-              break;
-            }
-          }
-        }
-      }
-    });
-
-    // Deduplicate: pick best combo per cell
-    return deduplicateCombos(combos);
+    return { indices: indices, points: pts2, type: typeParts.join(' + '), clear: false };
   }
 
-  function getSubsets(indices, size, grid) {
-    var result = [];
-    var filled = [];
-    for (var i = 0; i < indices.length; i++) {
-      if (grid[indices[i]] !== null) filled.push(indices[i]);
-    }
-    if (filled.length < size) return result;
-    // Generate combinations of `size` from filled
-    function combine(start, current) {
-      if (current.length === size) {
-        result.push({
-          indices: current.slice(),
-          cells: current.map(function(i) { return grid[i]; })
-        });
-        return;
-      }
-      for (var i = start; i < filled.length; i++) {
-        current.push(filled[i]);
-        combine(i + 1, current);
-        current.pop();
-      }
-    }
-    combine(0, []);
-    return result;
-  }
-
-  function checkNOfAKind(nums, n, jokers) {
-    if (nums.length + jokers < n) return false;
-    if (nums.length === 0) return jokers >= n;
+  function getNumberPattern(numbers, jokers) {
+    if (numbers.length === 0) return { allSame: true, allDiff: true, threeKind: true, twoPair: true, pair: true };
     var counts = {};
-    nums.forEach(function(num) { counts[num] = (counts[num] || 0) + 1; });
-    var maxCount = 0;
-    for (var k in counts) { if (counts[k] > maxCount) maxCount = counts[k]; }
-    return maxCount + jokers >= n;
+    numbers.forEach(function(n) { counts[n] = (counts[n] || 0) + 1; });
+    var vals = Object.values(counts).sort(function(a,b) { return b - a; });
+    var distinct = Object.keys(counts).length;
+
+    return {
+      allSame: vals[0] + jokers >= 4,
+      allDiff: distinct + jokers >= 4 && distinct === numbers.length, // each number unique among non-jokers
+      threeKind: vals[0] + jokers >= 3,
+      twoPair: checkTwoPairsPattern(vals, jokers),
+      pair: vals[0] + jokers >= 2
+    };
   }
 
-  function checkSameColor(colors, n, jokers) {
-    if (colors.length + jokers < n) return false;
-    if (colors.length === 0) return jokers >= n;
+  function checkTwoPairsPattern(vals, jokers) {
+    if (vals.length >= 2 && vals[0] >= 2 && vals[1] >= 2) return true;
+    if (vals.length >= 2 && vals[0] >= 2 && jokers >= 1) return true;
+    if (vals.length >= 2 && jokers >= 2) return true;
+    if (vals.length === 1 && jokers >= 2) return true;
+    return false;
+  }
+
+  function getColorPattern(colors, jokers) {
+    if (colors.length === 0) return { allSame: true, allDiff: true, threeKind: true, twoPair: true, pair: true };
     var counts = {};
     colors.forEach(function(c) { counts[c] = (counts[c] || 0) + 1; });
-    var maxCount = 0;
-    for (var k in counts) { if (counts[k] > maxCount) maxCount = counts[k]; }
-    return maxCount + jokers >= n;
+    var vals = Object.values(counts).sort(function(a,b) { return b - a; });
+    var distinct = Object.keys(counts).length;
+
+    return {
+      allSame: vals[0] + jokers >= 4,
+      allDiff: distinct + jokers >= 4 && distinct === colors.length,
+      threeKind: vals[0] + jokers >= 3,
+      twoPair: checkTwoPairsPattern(vals, jokers),
+      pair: vals[0] + jokers >= 2
+    };
   }
 
-  function checkStraight(nums, jokers) {
-    var straights = [
-      { seq: [1,2,3,4], points: 40, name: 'Straight 1-4' }
-    ];
-    var allNums = nums.slice();
-    for (var i = straights.length - 1; i >= 0; i--) {
-      var seq = straights[i].seq;
-      var missing = 0;
-      var used = allNums.slice();
-      for (var j = 0; j < seq.length; j++) {
-        var idx = used.indexOf(seq[j]);
-        if (idx >= 0) { used.splice(idx, 1); }
-        else { missing++; }
-      }
-      if (missing <= jokers) return straights[i];
+  function checkAllDiffNumbers(numbers, jokers) {
+    var unique = [];
+    numbers.forEach(function(n) { if (unique.indexOf(n) < 0) unique.push(n); });
+    return unique.length + jokers >= 4 && unique.length === numbers.length;
+  }
+
+  function checkAllDiffColors(colors, jokers) {
+    var unique = [];
+    colors.forEach(function(c) { if (unique.indexOf(c) < 0) unique.push(c); });
+    return unique.length + jokers >= 4 && unique.length === colors.length;
+  }
+
+  function checkClearingCombo(numPattern, colorPattern, numbers, colors, jokers) {
+    // 1. Same color + same number (100 pts)
+    if (colorPattern.allSame && numPattern.allSame) {
+      return { points: 100, type: 'Same Color+Number' };
+    }
+    // 2. Same color + all different numbers (80 pts)
+    if (colorPattern.allSame && checkAllDiffNumbers(numbers, jokers)) {
+      return { points: 80, type: 'Same Color+Diff Numbers' };
+    }
+    // 3. All different colors + same number (70 pts)
+    if (checkAllDiffColors(colors, jokers) && numPattern.allSame) {
+      return { points: 70, type: 'Diff Colors+Same Number' };
+    }
+    // 4. All different colors + all different numbers (60 pts)
+    if (checkAllDiffColors(colors, jokers) && checkAllDiffNumbers(numbers, jokers)) {
+      return { points: 60, type: 'Diff Colors+Diff Numbers' };
     }
     return null;
   }
 
-  function checkFullHouse(nums, jokers) {
-    // 3 of one + 2 of another (among 4 dice, need joker for 5th? No: 4 cells, full house = 3+1 doesn't work)
-    // Actually with 4 cells: we check for 3+1 pattern boosted by joker, or 2+2 boosted
-    var total = nums.length + jokers;
-    if (total < 4) return false;
-    var counts = {};
-    nums.forEach(function(n) { counts[n] = (counts[n] || 0) + 1; });
-    var vals = Object.keys(counts).map(function(k) { return counts[k]; }).sort(function(a,b) { return b-a; });
-    if (vals.length < 1) return false;
-    // Need at least 2 distinct values, or jokers fill in
-    if (vals.length >= 2) {
-      // Try: boost top to 3, second to at least 1 (remaining jokers)
-      var j = jokers;
-      var a = vals[0], b = vals[1];
-      if (a >= 3 && b >= 1) return true;
-      if (a >= 2 && b >= 1 && a + j >= 3) return true;
-      if (a >= 2 && b + (j - Math.max(0, 3 - a)) >= 1) {
-        var neededA = Math.max(0, 3 - a);
-        if (neededA <= j && b >= 1) return true;
-      }
-    }
-    if (vals.length === 1 && jokers >= 1) {
-      // One number repeated, joker becomes the other
-      if (vals[0] >= 3 && jokers >= 1) return true;
-      if (vals[0] >= 2 && jokers >= 2) return true; // joker boosts to 3, joker becomes 2nd
-      if (vals[0] >= 1 && jokers >= 3) return true;
-    }
-    return false;
+  function scoreNumberPattern(numPattern, numbers, jokers) {
+    // Best non-clearing number pattern (not already caught by clearing combos)
+    if (numPattern.allSame) return { points: 30, type: '4 Same Number' };
+    if (numPattern.threeKind) return { points: 15, type: '3 Same Number' };
+    if (numPattern.twoPair) return { points: 10, type: '2 Pairs (Num)' };
+    if (numPattern.pair) return { points: 5, type: 'Pair (Num)' };
+    return { points: 0, type: '' };
   }
 
-  function checkTwoPairs(nums, jokers) {
-    var counts = {};
-    nums.forEach(function(n) { counts[n] = (counts[n] || 0) + 1; });
-    var pairCount = 0;
-    for (var k in counts) { if (counts[k] >= 2) pairCount++; }
-    if (pairCount >= 2) return true;
-    if (pairCount === 1 && jokers >= 2) return true;
-    if (pairCount === 0) {
-      // Need jokers to form pairs
-      var singles = Object.keys(counts).length;
-      if (singles >= 2 && jokers >= 2) return true;
-    }
-    return false;
+  function scoreColorPattern(colorPattern, colors, jokers) {
+    if (colorPattern.allSame) return { points: 30, type: '4 Same Color' };
+    if (colorPattern.threeKind) return { points: 15, type: '3 Same Color' };
+    if (colorPattern.twoPair) return { points: 10, type: '2 Pairs (Col)' };
+    if (colorPattern.pair) return { points: 5, type: 'Pair (Col)' };
+    return { points: 0, type: '' };
   }
 
-  function deduplicateCombos(combos) {
-    // Sort by points descending, greedily pick non-overlapping
-    combos.sort(function(a, b) { return b.points - a.points; });
-    var used = {};
-    var result = [];
-    combos.forEach(function(combo) {
-      var overlap = combo.indices.some(function(i) { return used[i]; });
-      if (!overlap) {
-        result.push(combo);
-        combo.indices.forEach(function(i) { used[i] = true; });
-      }
+  function findCombinations() {
+    var combos = [];
+    GROUPS.forEach(function(indices) {
+      var result = evaluateGroup(indices);
+      if (result) combos.push(result);
     });
-    return result;
+    return combos;
   }
 
   function checkAndClearCombinations() {
@@ -387,8 +300,7 @@ window.initGame = function (container) {
     var totalPoints = 0;
     combos.forEach(function(combo) {
       totalPoints += combo.points;
-      // Only clear cells for difficult combinations (3+ dice); pairs stay on board
-      if (combo.clear !== false) {
+      if (combo.clear) {
         combo.indices.forEach(function(idx) { state.grid[idx] = null; });
       }
     });
@@ -396,9 +308,9 @@ window.initGame = function (container) {
     var prevScore = state.score;
     state.score += totalPoints;
 
-    // Award jokers for crossing 100-point thresholds
-    var prevThreshold = Math.floor(prevScore / 100);
-    var newThreshold = Math.floor(state.score / 100);
+    // Award jokers for crossing 250-point thresholds
+    var prevThreshold = Math.floor(prevScore / 250);
+    var newThreshold = Math.floor(state.score / 250);
     if (newThreshold > prevThreshold) {
       var earned = newThreshold - prevThreshold;
       state.jokers = Math.min(state.jokers + earned, 3);
