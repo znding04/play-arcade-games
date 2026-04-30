@@ -79,7 +79,7 @@ window.initGame = function (container) {
     state.dice = [];
     for (var i = 0; i < 4; i++) {
       state.dice.push({
-        number: randInt(6) + 1,
+        number: randInt(4) + 1,
         color: COLOR_NAMES[randInt(6)],
         placed: false
       });
@@ -303,9 +303,7 @@ window.initGame = function (container) {
 
   function checkStraight(nums, jokers) {
     var straights = [
-      { seq: [1,2,3,4], points: 40, name: 'Straight 1-4' },
-      { seq: [2,3,4,5], points: 50, name: 'Straight 2-5' },
-      { seq: [3,4,5,6], points: 60, name: 'Straight 3-6' }
+      { seq: [1,2,3,4], points: 40, name: 'Straight 1-4' }
     ];
     var allNums = nums.slice();
     for (var i = straights.length - 1; i >= 0; i--) {
@@ -484,8 +482,6 @@ window.initGame = function (container) {
     else if (number === 2) pips = [[-off,-off],[off,off]];
     else if (number === 3) pips = [[-off,-off],[0,0],[off,off]];
     else if (number === 4) pips = [[-off,-off],[off,-off],[-off,off],[off,off]];
-    else if (number === 5) pips = [[-off,-off],[off,-off],[0,0],[-off,off],[off,off]];
-    else if (number === 6) pips = [[-off,-off],[off,-off],[-off,0],[off,0],[-off,off],[off,off]];
 
     pips.forEach(function(p) {
       ctx.beginPath();
