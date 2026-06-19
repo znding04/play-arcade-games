@@ -140,6 +140,20 @@ const games = ref([
     icon: '🎲',
     titleZh: '骰子消消乐',
     titleEn: 'Lock-n-Roll'
+  },
+  {
+    name: 'frogger',
+    route: 'frogger',
+    icon: '🐸',
+    titleZh: '过河青蛙',
+    titleEn: 'Frogger'
+  },
+  {
+    name: 'asteroids',
+    route: 'asteroids',
+    icon: '⭐',
+    titleZh: '小行星',
+    titleEn: 'Asteroids'
   }
 ])
 </script>
