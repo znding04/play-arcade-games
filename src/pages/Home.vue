@@ -154,6 +154,13 @@ const games = ref([
     icon: '⭐',
     titleZh: '小行星',
     titleEn: 'Asteroids'
+  },
+  {
+    name: 'simon',
+    route: 'simon',
+    icon: '🎵',
+    titleZh: '记忆大师',
+    titleEn: 'Simon'
   }
 ])
 </script>

@@ -57,7 +57,10 @@ const games = {
   minesweeper: { titleZh: '扫雷', titleEn: 'Minesweeper', icon: '💣', script: '/games/minesweeper.js' },
   tictactoe: { titleZh: '井字棋', titleEn: 'Tic-Tac-Toe', icon: '❌', script: '/games/tictactoe.js' },
   crossy: { titleZh: '过马路', titleEn: 'Crossy Road', icon: '🐔', script: '/games/crossy.js' },
-  'lock-n-roll': { titleZh: '骰子消消乐', titleEn: 'Lock-n-Roll', icon: '🎲', script: '/games/lock-n-roll.js' }
+  'lock-n-roll': { titleZh: '骰子消消乐', titleEn: 'Lock-n-Roll', icon: '🎲', script: '/games/lock-n-roll.js' },
+  frogger: { titleZh: '过河青蛙', titleEn: 'Frogger', icon: '🐸', script: '/games/frogger.js' },
+  asteroids: { titleZh: '小行星', titleEn: 'Asteroids', icon: '⭐', script: '/games/asteroids.js' },
+  simon: { titleZh: '记忆大师', titleEn: 'Simon', icon: '🎵', script: '/games/simon.js' }
 }
 
 const currentGame = computed(() => {
