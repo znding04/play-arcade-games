@@ -60,7 +60,8 @@ const games = {
   'lock-n-roll': { titleZh: '骰子消消乐', titleEn: 'Lock-n-Roll', icon: '🎲', script: '/games/lock-n-roll.js' },
   frogger: { titleZh: '过河青蛙', titleEn: 'Frogger', icon: '🐸', script: '/games/frogger.js' },
   asteroids: { titleZh: '小行星', titleEn: 'Asteroids', icon: '⭐', script: '/games/asteroids.js' },
-  simon: { titleZh: '记忆大师', titleEn: 'Simon', icon: '🎵', script: '/games/simon.js' }
+  simon: { titleZh: '记忆大师', titleEn: 'Simon', icon: '🎵', script: '/games/simon.js' },
+  connect4: { titleZh: '四子棋', titleEn: 'Connect Four', icon: '🔴', script: '/games/connect4.js' }
 }
 
 const currentGame = computed(() => {
