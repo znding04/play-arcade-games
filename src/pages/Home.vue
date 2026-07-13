@@ -168,6 +168,13 @@ const games = ref([
     icon: '🔴',
     titleZh: '四子棋',
     titleEn: 'Connect Four'
+  },
+  {
+    name: 'centipede',
+    route: 'centipede',
+    icon: '🐛',
+    titleZh: '蜈蚣大战',
+    titleEn: 'Centipede'
   }
 ])
 </script>
