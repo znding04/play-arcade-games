@@ -175,6 +175,13 @@ const games = ref([
     icon: '🐛',
     titleZh: '蜈蚣大战',
     titleEn: 'Centipede'
+  },
+  {
+    name: 'doodle-jump',
+    route: 'doodle-jump',
+    icon: '🦘',
+    titleZh: '涂鸦跳跃',
+    titleEn: 'Doodle Jump'
   }
 ])
 </script>

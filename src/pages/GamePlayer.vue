@@ -62,7 +62,8 @@ const games = {
   asteroids: { titleZh: '小行星', titleEn: 'Asteroids', icon: '⭐', script: '/games/asteroids.js' },
   simon: { titleZh: '记忆大师', titleEn: 'Simon', icon: '🎵', script: '/games/simon.js' },
   connect4: { titleZh: '四子棋', titleEn: 'Connect Four', icon: '🔴', script: '/games/connect4.js' },
-  centipede: { titleZh: '蜈蚣大战', titleEn: 'Centipede', icon: '🐛', script: '/games/centipede.js' }
+  centipede: { titleZh: '蜈蚣大战', titleEn: 'Centipede', icon: '🐛', script: '/games/centipede.js' },
+  'doodle-jump': { titleZh: '涂鸦跳跃', titleEn: 'Doodle Jump', icon: '🦘', script: '/games/doodle-jump.js' }
 }
 
 const currentGame = computed(() => {
