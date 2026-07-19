@@ -182,6 +182,13 @@ const games = ref([
     icon: '🦘',
     titleZh: '涂鸦跳跃',
     titleEn: 'Doodle Jump'
+  },
+  {
+    name: 'wordle',
+    route: 'wordle',
+    icon: '🟩',
+    titleZh: '猜单词',
+    titleEn: 'Wordle'
   }
 ])
 </script>
