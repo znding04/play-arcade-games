@@ -189,6 +189,13 @@ const games = ref([
     icon: '🟩',
     titleZh: '猜单词',
     titleEn: 'Wordle'
+  },
+  {
+    name: 'sudoku',
+    route: 'sudoku',
+    icon: '🧩',
+    titleZh: '数独',
+    titleEn: 'Sudoku'
   }
 ])
 </script>

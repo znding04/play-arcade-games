@@ -64,7 +64,8 @@ const games = {
   connect4: { titleZh: '四子棋', titleEn: 'Connect Four', icon: '🔴', script: '/games/connect4.js' },
   centipede: { titleZh: '蜈蚣大战', titleEn: 'Centipede', icon: '🐛', script: '/games/centipede.js' },
   'doodle-jump': { titleZh: '涂鸦跳跃', titleEn: 'Doodle Jump', icon: '🦘', script: '/games/doodle-jump.js' },
-  wordle: { titleZh: '猜单词', titleEn: 'Wordle', icon: '🟩', script: '/games/wordle.js' }
+  wordle: { titleZh: '猜单词', titleEn: 'Wordle', icon: '🟩', script: '/games/wordle.js' },
+  sudoku: { titleZh: '数独', titleEn: 'Sudoku', icon: '🧩', script: '/games/sudoku.js' }
 }
 
 const currentGame = computed(() => {
